@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Аватар · 2 этап — обратная связь по сентябрю</title>
+<style>
+  :root{
+    --surface-1:      #fcfcfb;
+    --page-plane:     #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --series-1:       #2a78d6;   /* blue — единственная серия на графике */
+    --good:           #0ca30c;
+    --warning:        #fab219;
+    --critical:       #d03b3b;
+    --good-bg:        #eaf7ea;
+    --critical-bg:    #fbebeb;
+    --accent-bg:      #eaf1fb;
+    --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; font-family:var(--font); color:var(--text-primary);
+    background:var(--page-plane);
+    -webkit-font-smoothing:antialiased;
+  }
+  main{scroll-snap-type:y proximity;}
+  .slide{
+    min-height:100vh; width:100%;
+    display:flex; flex-direction:column; justify-content:flex-start;
+    padding:88px 8vw 64px; position:relative;
+    scroll-snap-align:start;
+    border-bottom:1px solid var(--gridline);
+  }
+  .slide.title, .slide.divider, .slide.final{justify-content:center;}
+  .slide-inner{max-width:1120px; margin:0 auto; width:100%;}
+  .kicker{
+    font-size:13px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--series-1); margin:0 0 14px;
+  }
+  h1{font-size:40px; line-height:1.15; margin:0 0 18px; font-weight:700;}
+  h2{font-size:30px; line-height:1.2; margin:0 0 14px; font-weight:700;}
+  h3{font-size:20px; margin:0 0 8px; font-weight:700;}
+  p{font-size:17px; line-height:1.6; color:var(--text-secondary); margin:0 0 12px;}
+  .lead{font-size:19px; color:var(--text-secondary); max-width:820px;}
+
+  /* ---- top bar ---- */
+  .topbar{
+    position:fixed; top:0; left:0; right:0; height:52px; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 24px; background:rgba(249,249,247,.88); backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--gridline); font-size:13px; color:var(--text-muted);
+  }
+  .topbar b{color:var(--text-primary);}
+  #counter{font-variant-numeric:tabular-nums;}
+
+  /* ---- dot nav ---- */
+  .dots{
+    position:fixed; right:18px; top:50%; transform:translateY(-50%); z-index:50;
+    display:flex; flex-direction:column; gap:9px;
+  }
+  .dots a{
+    width:8px; height:8px; border-radius:50%; background:var(--baseline);
+    display:block; transition:background .15s, transform .15s;
+  }
+  .dots a.active{background:var(--series-1); transform:scale(1.4);}
+  @media (max-width: 860px){ .dots{display:none;} }
+
+  /* ---- title slide ---- */
+  .slide.title{background:var(--surface-1); align-items:flex-start;}
+  .title h1{font-size:48px; max-width:820px;}
+  .meta-row{display:flex; gap:28px; flex-wrap:wrap; margin-top:32px;}
+  .meta-chip{
+    border:1px solid var(--border); border-radius:10px; padding:14px 18px; min-width:170px;
+    background:var(--surface-1);
+  }
+  .meta-chip .n{font-size:26px; font-weight:700; font-variant-numeric:tabular-nums;}
+  .meta-chip .l{font-size:13px; color:var(--text-muted); margin-top:2px;}
+
+  /* ---- divider ---- */
+  .slide.divider{background:var(--text-primary); color:#fff; align-items:flex-start;}
+  .slide.divider .kicker{color:#9fc3ef;}
+  .slide.divider h1{color:#fff;}
+  .slide.divider p{color:#c9c8c2; max-width:640px;}
+  .slide.divider .idx{font-size:15px; color:#9fc3ef; margin-bottom:6px;}
+
+  /* ---- top-5 chart ---- */
+  .bar-row{display:flex; align-items:center; gap:16px; margin:14px 0;}
+  .bar-label{width:280px; flex:0 0 auto; font-size:15px; color:var(--text-primary); font-weight:600;}
+  .bar-track{flex:1; position:relative; height:24px; background:none;}
+  .bar-fill{
+    height:24px; border-radius:0 4px 4px 0; background:var(--series-1);
+    display:flex; align-items:center;
+  }
+  .bar-fill.bonus{background:#9ec5f4;}
+  .bar-value{
+    margin-left:10px; font-weight:700; font-variant-numeric:tabular-nums; font-size:15px;
+    color:var(--text-primary);
+  }
+  .chart-wrap{margin-top:26px; padding:28px 28px 20px; background:var(--surface-1); border:1px solid var(--border); border-radius:14px;}
+  .chart-caption{font-size:13px; color:var(--text-muted); margin-top:18px; border-top:1px solid var(--gridline); padding-top:14px;}
+
+  /* ---- error slide ---- */
+  .err-head{display:flex; align-items:baseline; gap:16px; flex-wrap:wrap; margin-bottom:6px;}
+  .stat-pill{
+    display:inline-flex; align-items:center; gap:6px; font-size:14px; font-weight:600;
+    background:var(--accent-bg); color:#184f95; padding:6px 12px; border-radius:999px;
+  }
+  .bonus-pill{background:#fdf1de; color:#93670a;}
+
+  /* ---- all-videos mini grid ---- */
+  .vmini-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+    gap:16px; margin-top:24px;
+  }
+  .vmini{background:var(--surface-1); border:1px solid var(--border); border-radius:12px; overflow:hidden;}
+  .vmini video{width:100%; display:block; background:#000; aspect-ratio:16/9;}
+  .vmini-cap{padding:10px 12px 12px; font-size:13.5px; line-height:1.45;}
+  .vnum{
+    display:inline-block; font-size:11.5px; font-weight:700; color:#184f95;
+    background:var(--accent-bg); border-radius:5px; padding:1px 6px; margin-right:2px;
+    vertical-align:1px;
+  }
+  .vnum.good{color:#0a7d0a; background:var(--good-bg);}
+  .vtext{color:var(--text-primary);}
+  .vmarked{
+    margin-top:6px; padding:5px 8px; background:#fdf1de; border-radius:6px;
+    font-size:12.5px; color:#7a5300; line-height:1.4;
+  }
+  .vtime{
+    margin-top:6px; font-size:12.5px; font-weight:600; color:var(--text-secondary);
+    font-variant-numeric:tabular-nums;
+  }
+  .vquote{
+    margin-top:7px; padding-top:7px; border-top:1px dashed var(--gridline);
+    font-size:13px; font-style:italic; color:var(--text-secondary);
+  }
+
+  .manual-links-row{display:flex; flex-direction:column; gap:8px; margin-top:26px;}
+  .manual-link{
+    display:inline-flex; align-items:center; gap:6px; font-size:14.5px;
+    font-weight:600; color:#184f95; text-decoration:none; border-bottom:1px solid transparent;
+    width:fit-content;
+  }
+  .manual-link:hover{border-bottom-color:#184f95;}
+  .manual-link:after{content:"→"; }
+
+  /* ---- change slides ---- */
+  .change-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px 32px; margin-top:20px;}
+  @media (max-width: 900px){ .change-grid{grid-template-columns:1fr;} }
+  .change-card{border-left:3px solid var(--series-1); padding-left:16px;}
+  .change-card .date{font-size:12px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.03em; margin-bottom:4px;}
+  .change-card h3{font-size:16.5px; margin-bottom:6px;}
+  .change-card p{font-size:14.5px; margin-bottom:8px;}
+  .change-card .manual-link{font-size:13.5px; margin-top:0;}
+
+  /* ---- difficulties ---- */
+  .diff-cards{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:22px;}
+  @media (max-width: 900px){ .diff-cards{grid-template-columns:1fr;} }
+  .diff-card{background:var(--surface-1); border:1px solid var(--border); border-radius:14px; padding:20px 22px;}
+  .diff-card .said{font-size:15px; color:var(--text-primary); font-weight:600; margin-bottom:10px;}
+  .diff-card .said:before{content:"«"; color:var(--text-muted);}
+  .diff-card .said:after{content:"»"; color:var(--text-muted);}
+  .diff-card .now{font-size:14.5px; color:var(--text-secondary); border-top:1px solid var(--gridline); padding-top:10px; margin-top:10px;}
+  .diff-card .now b{color:var(--text-primary);}
+
+  .stat-tiles{display:flex; gap:20px; flex-wrap:wrap; margin:22px 0 8px;}
+  .stat-tile{
+    background:var(--surface-1); border:1px solid var(--border); border-radius:14px;
+    padding:18px 24px; min-width:190px;
+  }
+  .stat-tile .value{font-size:34px; font-weight:700;}
+  .stat-tile .label{font-size:13.5px; color:var(--text-muted); margin-top:2px;}
+  .exam-list{margin-top:18px; padding-left:0; list-style:none;}
+  .exam-list li{
+    display:flex; gap:12px; align-items:flex-start; padding:9px 0; border-bottom:1px solid var(--gridline);
+    font-size:15px; color:var(--text-secondary);
+  }
+  .exam-list li b{color:var(--text-primary); font-weight:600;}
+  .exam-list li .num{color:var(--text-muted); font-variant-numeric:tabular-nums; flex:0 0 22px;}
+
+  /* ---- proposals (призыв) ---- */
+  .ask-cards{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:24px;}
+  @media (max-width: 900px){ .ask-cards{grid-template-columns:1fr;} }
+  .ask-card{
+    background:var(--surface-1); border:1px solid var(--border); border-left:3px solid var(--series-1);
+    border-radius:12px; padding:20px 22px;
+  }
+  .ask-card h3{font-size:17px; margin-bottom:8px;}
+  .ask-card ul{margin:0; padding-left:18px;}
+  .ask-card li{font-size:14.5px; color:var(--text-secondary); margin-bottom:5px; line-height:1.5;}
+  .ask-banner{
+    margin-top:28px; padding:16px 20px; border-radius:12px; background:var(--accent-bg);
+    color:#184f95; font-size:15px; font-weight:600;
+  }
+
+  /* ---- final ---- */
+  .slide.final{background:var(--surface-1);}
+  .final-links{display:flex; flex-direction:column; gap:12px; margin-top:24px;}
+  .final-links a{
+    font-size:16px; font-weight:600; color:#184f95; text-decoration:none;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .final-links a:hover{text-decoration:underline;}
+  footer.note{margin-top:40px; font-size:13px; color:var(--text-muted); max-width:640px;}
+</style>
+</head>
+<body data-theme="light">
+
+<div class="topbar">
+  <span>Аватар · 2 этап — обратная связь асессорам</span>
+  <span id="counter">1 / 16</span>
+</div>
+
+<nav class="dots" id="dots"></nav>
+
+<main id="main">
+
+  <!-- 0. TITLE -->
+  <section class="slide title" id="s0">
+    <div class="slide-inner">
+      <div class="kicker">Созвон · 22.09.2026</div>
+      <h1>Разбор ошибок за сентябрь и что изменилось в мануале</h1>
+      <p class="lead">Материал собран по проверкам валидатора и заказчика за 1–21 сентября, а также
+      по результатам вступительного экзамена. Ничего личного — только частые темы и то, как их
+      теперь размечать правильно.</p>
+      <div class="meta-row">
+        <div class="meta-chip"><div class="n">161</div><div class="l">проверка в выборке</div></div>
+        <div class="meta-chip"><div class="n">28</div><div class="l">асессоров</div></div>
+        <div class="meta-chip"><div class="n">88</div><div class="l">попыток экзамена (57+31)</div></div>
+        <div class="meta-chip"><div class="n">102</div><div class="l">видео к разбору сегодня</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1. TOP-5 CHART -->
+  <section class="slide" id="s1">
+    <div class="slide-inner">
+      <div class="kicker">Раздел 1 · Топ ошибок</div>
+      <h2>С чем чаще всего не соглашался валидатор</h2>
+      <p class="lead">Считали по строкам таблицы ОС за сентябрь (без учёта 3 ошибок, которые в итоге
+      снял сам валидатор). Дальше разберём каждую тему отдельно — со всеми видео и точной
+      формулировкой правильного ответа.</p>
+      <div class="chart-wrap">
+        <div class="bar-row">
+          <div class="bar-label">Объём кадра / руки</div>
+          <div class="bar-track"><div class="bar-fill" style="width:100%"><span class="bar-value">22</span></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">Фон «Динамичный/уличный»</div>
+          <div class="bar-track"><div class="bar-fill" style="width:100%"><span class="bar-value">22</span></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">Границы сегмента</div>
+          <div class="bar-track"><div class="bar-fill" style="width:91%"><span class="bar-value">20</span></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">Посторонние голоса / шум</div>
+          <div class="bar-track"><div class="bar-fill" style="width:77%"><span class="bar-value">17</span></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">Люди в кадре</div>
+          <div class="bar-track"><div class="bar-fill" style="width:59%"><span class="bar-value">13</span></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">Очки / блики <span style="font-weight:400;color:var(--text-muted);">(бонус)</span></div>
+          <div class="bar-track"><div class="bar-fill bonus" style="width:32%"><span class="bar-value" style="color:var(--text-primary)">7</span></div></div>
+        </div>
+        <div class="chart-caption">Число строк с этой ошибкой в проверках 01–21.09.2026. Один случай может
+        содержать сразу 2–3 ошибки, поэтому сумма больше 161.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ошибка №1: Объём кадра: руки отмечают не там, где нужно -->
+  <section class="slide flow" id="s2">
+    <div class="slide-inner">
+      <div class="err-head">
+        <span class="kicker" style="margin:0;">Ошибка №1</span>
+        <span class="stat-pill">22 строки · 15 человек</span>
+      </div>
+      <h2>Объём кадра: руки отмечают не там, где нужно</h2>
+      <p class="lead">Либо не отмечают руки, хотя кисти видны, либо наоборот — отмечают, хотя рук в кадре не было ни разу. Самая частая ошибка классификатора третий месяц подряд. Ниже — все 22 случая сентября, разберём по очереди.</p>
+      <div class="vmini-grid">
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/a089d044-16eb-4f70-9eb4-2adf76b607b7/downloaded_raw/bk7Z2ovaM_U.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№2</span> <span class="vtext">не отмечены руки</span>
+            <div class="vmarked">🏷 Асессор отметил «Объём и поза тела»: Голова и плечи</div>
+            <div class="vtime">⏱ Сегмент 1: 0:20–0:40</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/a089d044-16eb-4f70-9eb4-2adf76b607b7/downloaded_raw/Hk_Z44-85ys.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№13</span> <span class="vtext">Не отмечены руки в первом сегменте. Много вспышек в первой части первого сегмента, такое брать не нужно.</span>
+            <div class="vmarked">🏷 Асессор отметил «Объём и поза тела»: сегмент 1 — Голова и плечи; сегмент 2 — Голова, плечи и руки; сегмент 3 — Голова, плечи и руки</div>
+            <div class="vtime">⏱ Сегмент 1: 0:11–0:50 · Сегмент 2: 1:01–1:39 · Сегмент 3: 1:51–2:27</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/ZbS2OCUcVSk.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№20</span> <span class="vtext">В сегменте несколько раз видны кисти: голова, плечи и руки.</span>
+            <div class="vmarked">🏷 Асессор отметил «Объём и поза тела»: Голова и плечи</div>
+            <div class="vtime">⏱ Сегмент 1: 0:00–5:00</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/NSnl0IPBGNE.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№21</span> <span class="vtext">Объем и поза тела человека в кадре в первом сегменте - сидя в полный рост, так как видно бедра и колени. В начале первого сегмента видно двух человек, но стоит метка, что один в кадре.</span>
+            <div class="vmarked">🏷 Асессор отметил «Объём и поза тела» (во всех сегментах): Голова, плечи и руки</div>
+            <div class="vtime">⏱ Сегмент 1: 5:00–5:23 · Сегмент 2: 9:10–9:21</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/YiEcUWJqPhc.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№26</span> <span class="vtext">склейка на 3:20 была, 2ой сегмент начинается с 3:26, нужно раньше начать + кисти рук не видны, лучше ставить &quot;голова и плечи&quot;</span>
+            <div class="vmarked">🏷 Асессор отметил «Объём и поза тела»: сегмент 1 — Голова и плечи; сегмент 2 — Голова, плечи и руки</div>
+            <div class="vtime">⏱ Сегмент 1: 0:31–0:46 · Сегмент 2: 3:26–3:42</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/UOms2ZAbyh8.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№28</span> <span class="vtext">Не отмечены руки</span>
+            <div class="vmarked">🏷 Асессор отметил «Объём и поза тела»: Голова и плечи</div>
+            <div class="vtime">⏱ Сегмент 1: 0:34–3:31</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/UvJklABLZ0Y.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№29</span> <span class="vtext">Руки в начале и в конце сегмента</span>
+            <div class="vmarked">🏷 Асессор отметил «Объём и поза тела»: Голова и плечи</div>
+            <div class="vtime">⏱ Сегмент 1: 0:00–0:39</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/l2WiN2WI1Io.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№31</span> <span class="vtext">Во втором сегменте не отмечены руки</span>
+            <div class="vmarked">🏷 Асессор отметил «Объём и поза тела»: сегмент 1 — Голова, плечи и руки; сегмент 2 — Голова и плечи</div>
+            <div class="vtime">⏱ Сегмент 1: 0:34–0:52 · Сегмент 2: 1:31–1:42</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/a089d044-16eb-4f70-9eb4-2adf76b607b7/downloaded_raw/aRU41nYIVYc.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№33</span> <span class="vtext">Руки в кадре не появляются, зря отметили</span>
+            <div class="vmarked">🏷 Асессор отметил «Объём и поза тела»: Голова, плечи и руки</div>
+            <div class="vtime">⏱ Сегмент 1: 0:01–0:57</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/1C2ZX6YQ0uE.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№40</span> <span class="vtext">Кисти рук видны: голова. плечи и руки</span>
+            <div class="vmarked">🏷 Асессор отметил «Объём и поза тела»: сегмент 1 — Голова и плечи; сегмент 2 — Голова, плечи и руки</div>
+            <div class="vtime">⏱ Сегмент 1: 0:50–1:03 · Сегмент 2: 1:04–1:18</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/fGuYlc17S2E.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№51</span> <span class="vtext">Не отмечена рука, попавшая в кадр.</span>
+            <div class="vmarked">🏷 Асессор отметил «Объём и поза тела»: сегмент 1 — Голова и плечи; сегмент 2 — Голова, плечи и руки</div>
+            <div class="vtime">⏱ Сегмент 1: 0:00–0:14 · Сегмент 2: 0:59–3:20</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/NpNbJC32L_8.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№55</span> <span class="vtext">Не отмечены руки</span>
+            <div class="vmarked">🏷 Асессор отметил «Объём и поза тела»: Голова и плечи</div>
+            <div class="vtime">⏱ Сегмент 1: 0:00–1:25</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/a20120cf-3450-4d78-8d8e-053fc5612dbd/downloaded_raw/ciZvA3lnvJE.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№72</span> <span class="vtext">Не отмечены руки в третьем сегменте</span>
+            <div class="vmarked">🏷 Асессор отметил «Объём и поза тела»: сегмент 1 — Голова, плечи и руки; сегмент 2 — Голова, плечи и руки; сегмент 3 — Голова и плечи</div>
+            <div class="vtime">⏱ Сегмент 1: 0:00–0:11 · Сегмент 2: 0:23–0:51 · Сегмент 3: 3:52–4:29</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/ugOTJA0NGAQ.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№88</span> <span class="vtext">в 1 сегменте кисти рук не видны, &quot;голова и плечи&quot;</span>
+            <div class="vmarked">🏷 Асессор отметил «Объём и поза тела» (во всех сегментах): Голова, плечи и руки</div>
+            <div class="vtime">⏱ Сегмент 1: 0:02–0:36 · Сегмент 2: 0:36–1:18</div>
+            <div class="vquote">РГ* Согласно мануалу: Если пальцы человека попали в кадр буквально на долю секунды (кисти рук при этом полностью не видны) — ставьте «Голова и плечи». - В данном случае там мелькнуло на долю секунды</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/NGCtNWpXFdo.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№100</span> <span class="vtext">Голова и плечи, руки не видны.</span>
+            <div class="vmarked">🏷 Асессор отметил «Объём и поза тела»: Голова, плечи и руки</div>
+            <div class="vtime">⏱ Сегмент 1: 0:26–0:43</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/kicq8xb_Uq8.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№105</span> <span class="vtext">1. Голова и плечи, а не просто голова. 2. 1 человек в кадре, а не 2. 3. В 3 сегменте расфокус лица.</span>
+            <div class="vmarked">🏷 Асессор отметил «Объём и поза тела»: сегмент 1 — Голова; сегмент 2 — Голова; сегмент 3 — Голова, плечи и руки</div>
+            <div class="vtime">⏱ Сегмент 1: 0:13–0:30 · Сегмент 2: 0:32–0:47 · Сегмент 3: 1:08–1:38</div>
+            <div class="vquote">1. Голова ставится тогда, когда видна только она и шея (или только голова без шеи). Если видно хотя бы одно плечо (не обязательно до локтевого сустава), то ставить нужно уже &quot;Голова и плечи&quot;. 2. Ошибка относится к первому сегменту. Нумерация ошибок не равна номерам сегментов. На валидации сейчас все ошибки зхаписываются в одно поле, так как мы выяснили, что если поставить несколько ошибок на каждый сегмент с разными комментриями, то разметчики видят только одну ошибку. Будем прописывать номера сегментов в описании ошибки.</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/v-I9QfdvGvA.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№121</span> <span class="vtext">В 3 сегменте только &quot;голова и плечи&quot;, руки не видны</span>
+            <div class="vmarked">🏷 Асессор отметил «Объём и поза тела» (во всех сегментах): Голова, плечи и руки</div>
+            <div class="vtime">⏱ Сегмент 1: 0:24–0:34 · Сегмент 2: 0:35–0:59 · Сегмент 3: 1:04–1:18</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/pGyAE2jSuo8.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№127</span> <span class="vtext">1. 1 сегмент нужно продолжить, 2. Голова и плечи, а не голова.</span>
+            <div class="vmarked">🏷 Асессор отметил «Объём и поза тела» (во всех сегментах): Голова</div>
+            <div class="vtime">⏱ Сегмент 1: 0:12–0:38 · Сегмент 2: 3:50–4:30</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/y-fXGRBIVCY.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№128</span> <span class="vtext">Не отмечены руки</span>
+            <div class="vmarked">🏷 Асессор отметил «Объём и поза тела»: Голова и плечи</div>
+            <div class="vtime">⏱ Сегмент 1: 0:00–3:49</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/aad81115-c102-4001-8e6a-67207c05ec73/downloaded_raw/rw7v7QZfL1g.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№141</span> <span class="vtext">1. 2 сегмент - голова, плечи и руки: руки отлично видны 2. Некорр. границы: сегмент завершен в рандомном месте, артефактов нет</span>
+            <div class="vmarked">🏷 Асессор отметил «Объём и поза тела»: сегмент 1 — Голова, плечи и руки; сегмент 2 — Голова и плечи</div>
+            <div class="vtime">⏱ Сегмент 1: 0:01–2:56 · Сегмент 2: 5:05–6:54</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/aad81115-c102-4001-8e6a-67207c05ec73/downloaded_raw/5qNVtcESVak.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№142</span> <span class="vtext">1. Неверный фон. 2. Не отмечены руки</span>
+            <div class="vmarked">🏷 Асессор отметил «Объём и поза тела» (во всех сегментах): Голова и плечи</div>
+            <div class="vtime">⏱ Сегмент 1: 0:14–0:27 · Сегмент 2: 1:09–1:48</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/aad81115-c102-4001-8e6a-67207c05ec73/downloaded_raw/RkGxPqM_JOE.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№161</span> <span class="vtext">1. В 1 сегменте руки ни разу не мелькнули, ставить &quot;голова и плечи&quot;. 2. Во 2ом сегменте поставлено 2 эмоции с 1 человеком.</span>
+            <div class="vmarked">🏷 Асессор отметил «Объём и поза тела» (во всех сегментах): Голова, плечи и руки</div>
+            <div class="vtime">⏱ Сегмент 1: 0:01–0:15 · Сегмент 2: 0:17–0:32</div>
+          </div>
+        </div>
+      </div>
+      <div class="manual-links-row">
+      <a class="manual-link" href="https://ekaterina-dl.github.io/avatar-manual/manual-2-etap/04-classifier/#3-объём-и-поза-тела-человека-в-кадре" target="_blank" rel="noopener">Классификатор → «Объём и поза тела человека в кадре» — правильный ответ</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ошибка №2: Фон: «статичный» вместо «Динамичный/уличный» -->
+  <section class="slide flow" id="s3">
+    <div class="slide-inner">
+      <div class="err-head">
+        <span class="kicker" style="margin:0;">Ошибка №2</span>
+        <span class="stat-pill">22 строки · 10 человек</span>
+      </div>
+      <h2>Фон: «статичный» вместо «Динамичный/уличный»</h2>
+      <p class="lead">Самая заметная правка сентября: заказчик расширил критерий динамики до «вообще любого» движения — и в тот же день уточнил, что голая стена сама по себе ещё не «улица». Все 22 случая — ниже.</p>
+      <div class="vmini-grid">
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/LxmpuTVl2GM.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№22</span> <span class="vtext">Фон &quot;диначмичный/уличный&quot; в обоих сегментах</span>
+            <div class="vtime">⏱ Сегмент 1: 0:00–0:23 · Сегмент 2: 2:20–2:34</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/a089d044-16eb-4f70-9eb4-2adf76b607b7/downloaded_raw/9oPD8IFxV3Y.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№24</span> <span class="vtext">Фон &quot;динамичный/УЛИЧНЫЙ&quot;</span>
+            <div class="vmarked">🏷 Асессор отметил «Фон» (во всех сегментах): Естественный, но статичный</div>
+            <div class="vtime">⏱ Сегмент 1: 0:00–0:15 · Сегмент 2: 0:29–0:53</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/HBdoOTyCbbk.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№30</span> <span class="vtext">Фон &quot;динамичный/уличный&quot;</span>
+            <div class="vmarked">🏷 Асессор отметил «Фон» (во всех сегментах): Естественный, но статичный</div>
+            <div class="vtime">⏱ Сегмент 1: 0:02–0:23 · Сегмент 2: 4:34–4:55</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/99lbm1I9p9A.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№36</span> <span class="vtext">1. Фон &quot;динамичный&quot;, там собака. 2. Сегмент нужно было продолжить, артефактов нет</span>
+            <div class="vtime">⏱ Сегмент 1: 0:00–4:43</div>
+            <div class="vquote">Любое движение за спиной говорящего человека является динамикой. На третьем этапе Аватара критерии немного другие, но на втором любое движение должно быть отмечено в класиификаторе. Если человек в комнате, а за окном ветер и есть движение деревьев, флага и чего угодно, то фон будет динамичным. Если человек в комнате, а на фоне даже один раз за 5 минут прошла собака, то фон тоже будет динамичным. Не пропускаем в статику ничего, что хоть немного шевелится.</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/a089d044-16eb-4f70-9eb4-2adf76b607b7/downloaded_raw/dVKNv3rtjR0.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№41</span> <span class="vtext">Фон &quot;динамичный/уличный&quot;</span>
+            <div class="vtime">⏱ Сегмент 1: 0:03–0:59 · Сегмент 2: 1:43–2:53</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/a20120cf-3450-4d78-8d8e-053fc5612dbd/downloaded_raw/lIKN_42aVPg.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№58</span> <span class="vtext">Фон &quot;динамичный&quot; (цветок)</span>
+            <div class="vtime">⏱ Сегмент 1: 0:00–0:21 · Сегмент 2: 0:31–2:09 · Сегмент 3: 4:09–4:48 · Сегмент 4: 7:07–7:27</div>
+            <div class="vquote">Любое движение за спиной говорящего человека является динамикой. На третьем этапе Аватара критерии немного другие, но на втором любое движение должно быть отмечено в класиификаторе. Если человек в комнате, а за окном ветер и есть движение деревьев, флага и чего угодно, то фон будет динамичным. Если человек в комнате, а на фоне даже один раз за 5 минут прошла собака, то фон тоже будет динамичным. Не пропускаем в статику ничего, что хоть немного шевелится.</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/t5jENPvDtUw.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№65</span> <span class="vtext">Неверный фон, должен быть &quot;динамичный/УЛИЧНЫЙ&quot;</span>
+            <div class="vtime">⏱ Сегмент 1: 0:00–0:17 · Сегмент 2: 0:19–2:48</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/5zxlregPQno.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№78</span> <span class="vtext">динамичный фон - за окном движение</span>
+            <div class="vtime">⏱ Сегмент 1: 0:01–1:44</div>
+            <div class="vquote">Любое движение за спиной говорящего человека является динамикой. На третьем этапе Аватара критерии немного другие, но на втором любое движение должно быть отмечено в класиификаторе. Если человек в комнате, а за окном ветер и есть движение деревьев, флага и чего угодно, то фон будет динамичным. Если человек в комнате, а на фоне даже один раз за 5 минут прошла собака, то фон тоже будет динамичным. Не пропускаем в статику ничего, что хоть немного шевелится.</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/a20120cf-3450-4d78-8d8e-053fc5612dbd/downloaded_raw/Rhfc62Ky2tw.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№80</span> <span class="vtext">Фон &quot;естественный, но статичный&quot; в обоих сегментах</span>
+            <div class="vtime">⏱ Сегмент 1: 1:01–1:32 · Сегмент 2: 2:36–2:47</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/qZtJYT9VV7M.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№95</span> <span class="vtext">Неверный фон</span>
+            <div class="vtime">⏱ Сегмент 1: 0:00–3:00</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/RI0TFiYvfek.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№97</span> <span class="vtext">1. Сегмент нужно было продолжить. Артефактов нет. 2. Неверный фон, должен быть &quot;динамичный/уличный&quot;.</span>
+            <div class="vtime">⏱ Сегмент 1: 0:00–2:59</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/aJR_qrBu_XU.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№110</span> <span class="vtext">1. Статичный фон, в сегменте нет динамики. 2. Не размечен сегмент с настоящей динамикой.</span>
+            <div class="vtime">⏱ Сегмент 1: 0:09–0:26</div>
+            <div class="vquote">Если мы видим стену, то это ещё не уличный фон. Если бы были видны деревья/проезжающий транспорт/пролетающие птицы и тп, то фон был бы действительно динамичный/уличный. В данном случае, мы видим только одну стену, динамики нет, а такая стена может быть и внутри помещения. То есть мы ориентируемся именно на границы выделяемого сегмента. Если в выбранных границах нет ничего, что указывало бы на улицу/динамику, то мы выбираем статичный фон.</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/HmN_x5WVOOQ.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№117</span> <span class="vtext">1. Во втором сегменте фон динамичный. 2. В третьем сегменте в кадре один человек</span>
+            <div class="vtime">⏱ Сегмент 1: 0:04–0:21 · Сегмент 2: 0:21–0:40 · Сегмент 3: 0:41–0:56</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/MrKEYYgyKK4.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№123</span> <span class="vtext">динамичный фон: за окном движение</span>
+            <div class="vtime">⏱ Сегмент 1: 0:00–5:00</div>
+            <div class="vquote">Любое движение за спиной говорящего человека является динамикой. На третьем этапе Аватара критерии немного другие, но на втором любое движение должно быть отмечено в класиификаторе. Если человек в комнате, а за окном ветер и есть движение деревьев, флага и чего угодно, то фон будет динамичным. Если человек в комнате, а на фоне даже один раз за 5 минут прошла собака, то фон тоже будет динамичным. Не пропускаем в статику ничего, что хоть немного шевелится.</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/D25cgZ-jnDU.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№126</span> <span class="vtext">Во втором сегменте неверный фон. Должен быть динамичный/уличный</span>
+            <div class="vtime">⏱ Сегмент 1: 0:00–0:26 · Сегмент 2: 1:27–2:24</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/aad81115-c102-4001-8e6a-67207c05ec73/downloaded_raw/b-dGsckrgHQ.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№138</span> <span class="vtext">4 склейки в сегменте + неверный фон</span>
+            <div class="vtime">⏱ Сегмент 1: 0:14–1:25</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/aad81115-c102-4001-8e6a-67207c05ec73/downloaded_raw/5qNVtcESVak.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№142</span> <span class="vtext">1. Неверный фон. 2. Не отмечены руки</span>
+            <div class="vtime">⏱ Сегмент 1: 0:14–0:27 · Сегмент 2: 1:09–1:48</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/aad81115-c102-4001-8e6a-67207c05ec73/downloaded_raw/imS3m0HnaUg.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№143</span> <span class="vtext">Неверный фон во всех сегментах. Должен быть &quot;динамичный/уличный&quot;.</span>
+            <div class="vtime">⏱ Сегмент 1: 0:08–1:35 · Сегмент 2: 3:42–3:53 · Сегмент 3: 5:17–6:41 · Сегмент 4: 6:44–7:35</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/aad81115-c102-4001-8e6a-67207c05ec73/downloaded_raw/idYAyxyCclc.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№144</span> <span class="vtext">Неверный фон</span>
+            <div class="vtime">⏱ Сегмент 1: 0:04–2:58</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/aad81115-c102-4001-8e6a-67207c05ec73/downloaded_raw/A9kJfVlrAA8.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№145</span> <span class="vtext">1. Сегмент нужно было продолжить, артефактов нет. 2. Неверный фон</span>
+            <div class="vtime">⏱ Сегмент 1: 0:01–2:51</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/aad81115-c102-4001-8e6a-67207c05ec73/downloaded_raw/QnUWPf9Jd8I.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№147</span> <span class="vtext">Неверный фон во втором сегменте</span>
+            <div class="vtime">⏱ Сегмент 1: 0:13–0:23 · Сегмент 2: 1:01–1:22 · Сегмент 3: 3:08–3:46 · Сегмент 4: 5:46–6:23</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/aad81115-c102-4001-8e6a-67207c05ec73/downloaded_raw/1kLa_PaftNg.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№151</span> <span class="vtext">Неверный фон</span>
+            <div class="vmarked">🏷 Асессор отметил «Фон»: Естественный, но статичный</div>
+            <div class="vtime">⏱ Сегмент 1: 0:59–1:26</div>
+          </div>
+        </div>
+      </div>
+      <div class="manual-links-row">
+      <a class="manual-link" href="https://ekaterina-dl.github.io/avatar-manual/manual-2-etap/04-classifier/#6-фон" target="_blank" rel="noopener">Классификатор → «Фон» — правильный ответ</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ошибка №3: Границы сегмента: обрывают рано или делят без причины -->
+  <section class="slide flow" id="s4">
+    <div class="slide-inner">
+      <div class="err-head">
+        <span class="kicker" style="margin:0;">Ошибка №3</span>
+        <span class="stat-pill">20 строк · 11 человек</span>
+      </div>
+      <h2>Границы сегмента: обрывают рано или делят без причины</h2>
+      <p class="lead">Сегмент режут, как только на экране что-то показалось «тряской» или «сменой настроения» — хотя настоящей причины останавливаться там не было.</p>
+      <div class="vmini-grid">
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/q4_milsibNs.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№6</span> <span class="vtext">3 сегмент нужно продолжить, в профиль, черты лица видны, 3 и 4 сегмент нужно объединить. Выделено много однотипных фрагментов, по инструкции достаточно двух.</span>
+            <div class="vtime">⏱ Сегмент 1: 0:06–0:43 · Сегмент 2: 1:12–1:26 · Сегмент 3: 1:43–2:03 · Сегмент 4: 2:20–3:13</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/LaqDimzzyEY.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№18</span> <span class="vtext">сегмент рано завершен нет причин для разделения, нужно продолжить</span>
+            <div class="vtime">⏱ Сегмент 1: 0:02–3:00</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/fI9L934Hbe0.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№27</span> <span class="vtext">Сегмент нужно было продолжить до 3:14. Артефактов нет</span>
+            <div class="vtime">⏱ Сегмент 1: 0:00–3:00</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/99lbm1I9p9A.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№36</span> <span class="vtext">1. Фон &quot;динамичный&quot;, там собака. 2. Сегмент нужно было продолжить, артефактов нет</span>
+            <div class="vtime">⏱ Сегмент 1: 0:00–4:43</div>
+            <div class="vquote">Любое движение за спиной говорящего человека является динамикой. На третьем этапе Аватара критерии немного другие, но на втором любое движение должно быть отмечено в класиификаторе. Если человек в комнате, а за окном ветер и есть движение деревьев, флага и чего угодно, то фон будет динамичным. Если человек в комнате, а на фоне даже один раз за 5 минут прошла собака, то фон тоже будет динамичным. Не пропускаем в статику ничего, что хоть немного шевелится.</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/gaaojdo7fLg.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№46</span> <span class="vtext">Сегмент рано завершен, нет причин для того, чтобы порезать его, дальше идет однотипный фрагмент</span>
+            <div class="vtime">⏱ Сегмент 1: 0:04–3:02</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/gaaojdo7fLg.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№49</span> <span class="vtext">Сегмент рано завершен, нет причин для того, чтобы порезать его, дальше идет однотипный фрагмент</span>
+            <div class="vtime">⏱ Сегмент 1: 0:04–3:02</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/EXVl1yeVYgk.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№52</span> <span class="vtext">Выделено 2 сегмента, которые должны быть одним, характеристики те же, нет артефактов между ними.</span>
+            <div class="vtime">⏱ Сегмент 1: 3:12–6:03 · Сегмент 2: 0:00–3:11</div>
+            <div class="vquote">Эмоции на протяжении всего ролика не меняются настолько, чтобы можно было разделить на 2 сегмента. &quot;Нейтральные/спокойные&quot; эмоции можно ставить в случае, если они практически отсутствуют. К &quot;серьёзным/сосредоточенным&quot; отностится и злость, и явная напряженность, когда по человеку видно, что тема его беспокоит, &quot;трогает за живое&quot;, раздражает или злит.</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/a20120cf-3450-4d78-8d8e-053fc5612dbd/downloaded_raw/XsK6PcFF_F0.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№56</span> <span class="vtext">2ой сегмент рано завершен, нужно продолжить, артефактов нет</span>
+            <div class="vtime">⏱ Сегмент 1: 0:37–2:01 · Сегмент 2: 3:02–4:04 · Сегмент 3: 6:25–6:48</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/a20120cf-3450-4d78-8d8e-053fc5612dbd/downloaded_raw/fy9yytd56Ho.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№60</span> <span class="vtext">1. Длительное молчание во втором сегменте (когда перемешивает карты). 2. Четвертый сегмент нужно было продолжить</span>
+            <div class="vtime">⏱ Сегмент 1: 0:00–0:25 · Сегмент 2: 0:36–1:24 · Сегмент 3: 4:09–4:39 · Сегмент 4: 5:53–6:13</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/tdBpnIou8sY.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№92</span> <span class="vtext">Сегменты нужно было продолжить.</span>
+            <div class="vtime">⏱ Сегмент 1: 0:01–0:40 · Сегмент 2: 3:25–3:36</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/5Dn3N_73ARQ.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№96</span> <span class="vtext">Сегмент нужно было продолжить. Артефактов нет</span>
+            <div class="vtime">⏱ Сегмент 1: 0:00–3:00</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/RI0TFiYvfek.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№97</span> <span class="vtext">1. Сегмент нужно было продолжить. Артефактов нет. 2. Неверный фон, должен быть &quot;динамичный/уличный&quot;.</span>
+            <div class="vtime">⏱ Сегмент 1: 0:00–2:59</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/tTLRWmjs5hE.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№98</span> <span class="vtext">1) Сегмент нужно продолжить, нет причин для деления. 2) На 29-31 секундах предмет перекрывает рот во время речи, лучше такое не включать. 3) Не выделен сегмент, в котором руки не видны (8:51-9:11).</span>
+            <div class="vtime">⏱ Сегмент 1: 0:00–3:00</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/Vt_BeJfLAHs.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№104</span> <span class="vtext">2ой сегмент рано завершен, артефактов нет</span>
+            <div class="vtime">⏱ Сегмент 1: 0:08–0:28 · Сегмент 2: 0:44–1:10</div>
+            <div class="vquote">Да, тряска умеренная, человек не &quot;расплывается&quot;, не теряется в кадре. Такое можно брать.</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/UtB-j-pedxA.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№124</span> <span class="vtext">Третий сегмент нужно было продолжить</span>
+            <div class="vtime">⏱ Сегмент 1: 0:06–0:42 · Сегмент 2: 0:48–1:35 · Сегмент 3: 5:52–6:07</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/pGyAE2jSuo8.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№127</span> <span class="vtext">1. 1 сегмент нужно продолжить, 2. Голова и плечи, а не голова.</span>
+            <div class="vtime">⏱ Сегмент 1: 0:12–0:38 · Сегмент 2: 3:50–4:30</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/aad81115-c102-4001-8e6a-67207c05ec73/downloaded_raw/rw7v7QZfL1g.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№141</span> <span class="vtext">1. 2 сегмент - голова, плечи и руки: руки отлично видны 2. Некорр. границы: сегмент завершен в рандомном месте, артефактов нет</span>
+            <div class="vtime">⏱ Сегмент 1: 0:01–2:56 · Сегмент 2: 5:05–6:54</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/aad81115-c102-4001-8e6a-67207c05ec73/downloaded_raw/A9kJfVlrAA8.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№145</span> <span class="vtext">1. Сегмент нужно было продолжить, артефактов нет. 2. Неверный фон</span>
+            <div class="vtime">⏱ Сегмент 1: 0:01–2:51</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/aad81115-c102-4001-8e6a-67207c05ec73/downloaded_raw/UzXwYRwD1Uw.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№146</span> <span class="vtext">1. Ошибка в блоке &quot;Количество людей, одновременно находящихся в кадре&quot;. 2. Сегмент нужно было продолжить, артефактов нет</span>
+            <div class="vtime">⏱ Сегмент 1: 0:27–3:27</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/aad81115-c102-4001-8e6a-67207c05ec73/downloaded_raw/hXBgSCFOpPg.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№154</span> <span class="vtext">Сегмент нужно было продолжить</span>
+            <div class="vtime">⏱ Сегмент 1: 0:17–0:45</div>
+          </div>
+        </div>
+      </div>
+      <div class="manual-links-row">
+      <a class="manual-link" href="https://ekaterina-dl.github.io/avatar-manual/manual-2-etap/02-segments/#когда-объединятьделить-сегмент" target="_blank" rel="noopener">Сегменты → «Когда объединять/делить сегмент» — правильный ответ</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ошибка №4: Посторонние голоса и шум: перестраховываются в обе стороны -->
+  <section class="slide flow" id="s5">
+    <div class="slide-inner">
+      <div class="err-head">
+        <span class="kicker" style="margin:0;">Ошибка №4</span>
+        <span class="stat-pill">17 строк · 13 человек</span>
+      </div>
+      <h2>Посторонние голоса и шум: перестраховываются в обе стороны</h2>
+      <p class="lead">Часть асессоров пропускает нормальные фрагменты из-за фонового шума, который на самом деле не мешает; часть — принимает короткий звук или закадровый голос за критичный дефект.</p>
+      <div class="vmini-grid">
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/a089d044-16eb-4f70-9eb4-2adf76b607b7/downloaded_raw/Du0Th0UaEdQ.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№14</span> <span class="vtext">1) В 1 сегменте поставлено &quot;женщина&quot; + 2) закадровый голос есть. 3) Во втором сегменте в конце склейка.</span>
+            <div class="vtime">⏱ Сегмент 1: 1:13–1:25 · Сегмент 2: 1:59–2:21</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/a089d044-16eb-4f70-9eb4-2adf76b607b7/downloaded_raw/VEltQPoQ3XE.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№16</span> <span class="vtext">В сегменте не должно быть голоса интервьюера!!! Повторите инструкцию!</span>
+            <div class="vtime">⏱ Сегмент 1: 0:10–1:02 · Сегмент 2: 1:06–3:08</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/a089d044-16eb-4f70-9eb4-2adf76b607b7/downloaded_raw/z9io6eUx46Q.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№17</span> <span class="vtext">Выделен неудачный сегмент, очень громкие крики на фоне. Есть фрагмент с более спокойным фоном.</span>
+            <div class="vtime">⏱ Сегмент 1: 0:11–0:27</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/a089d044-16eb-4f70-9eb4-2adf76b607b7/downloaded_raw/0CRFA6w81ME.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№23</span> <span class="vtext">закадровый голос в сегменте не должен быть</span>
+            <div class="vtime">⏱ Сегмент 1: 0:13–0:50</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/a20120cf-3450-4d78-8d8e-053fc5612dbd/downloaded_raw/2NQjRHOepks.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№62</span> <span class="vtext">во 2ом сегменте захвачен очень громкий закадровый смех, а также закадровый голос в конце</span>
+            <div class="vtime">⏱ Сегмент 1: 0:15–0:35 · Сегмент 2: 0:42–1:21 · Сегмент 3: 3:32–4:06</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/PNWyKp9xWvQ.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№67</span> <span class="vtext">1. На 14 секунде теряется лицо человека. 2. В конце сегмента явный закадровый голос.</span>
+            <div class="vtime">⏱ Сегмент 1: 0:00–0:32</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/Qz8aV8jbYPA.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№68</span> <span class="vtext">В начале сегмента громкий смех, такое не нужно брать в сегмент</span>
+            <div class="vtime">⏱ Сегмент 1: 0:00–0:13</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/zf_0ALTXoA0.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№69</span> <span class="vtext">сегмент захватывает закадровый голос - артефакт</span>
+            <div class="vtime">⏱ Сегмент 1: 0:48–1:05</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/a20120cf-3450-4d78-8d8e-053fc5612dbd/downloaded_raw/LccHSk8kXWQ.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№85</span> <span class="vtext">Неверный пол в первом сегменте. Неверный язык везде. Закадровый смех в 3.</span>
+            <div class="vtime">⏱ Сегмент 1: 0:27–0:42 · Сегмент 2: 1:39–2:00 · Сегмент 3: 2:23–2:41</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/DgS0lCIzWEU.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№89</span> <span class="vtext">Слишком много явного закадрового голоса</span>
+            <div class="vtime">⏱ Сегмент 1: 0:00–0:11 · Сегмент 2: 0:15–0:56</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/bBT547n2pzs.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№109</span> <span class="vtext">В 1ом сегменте очень громкий фоновый голос. Во втором сегменте нужно было границу поставить до начала слов в песне.</span>
+            <div class="vtime">⏱ Сегмент 1: 0:21–1:38 · Сегмент 2: 1:48–3:17</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/Mm3MS9QJRs8.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№112</span> <span class="vtext">Голос интервьюера в конце первого сегмента</span>
+            <div class="vtime">⏱ Сегмент 1: 0:19–1:08 · Сегмент 2: 1:50–2:23</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/GhS44mlPK60.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№119</span> <span class="vtext">закадрового голоса в сегменте быть не должно</span>
+            <div class="vtime">⏱ Сегмент 1: 0:16–0:35</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/7IkI0LzblZw.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№130</span> <span class="vtext">В 1 сегменте в конце на фоне голос очень громкий, мешает восприятию речи персонажа</span>
+            <div class="vtime">⏱ Сегмент 1: 0:16–0:39 · Сегмент 2: 2:07–2:29 · Сегмент 3: 2:48–3:04</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/Uy8SInPERrc.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№132</span> <span class="vtext">В 1 и 2 сегментах голоса на фоне очень громкие, мешают восприятию персонажа, есть более удачный фрагмент для выделения с музыкой ближе к концу</span>
+            <div class="vtime">⏱ Сегмент 1: 0:10–1:04 · Сегмент 2: 1:50–2:28</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/aad81115-c102-4001-8e6a-67207c05ec73/downloaded_raw/a-prOnYfPXw.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№150</span> <span class="vtext">На 1:04 - 1:05 склейка. Очень громкий голос на фоне, нужно подобрать корректные границы, в которых восприятию речи говорящего не мешают.</span>
+            <div class="vtime">⏱ Сегмент 1: 0:17–0:49 · Сегмент 2: 0:49–1:26</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/aad81115-c102-4001-8e6a-67207c05ec73/downloaded_raw/_tAmv2xifgg.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№160</span> <span class="vtext">Голос интервьюера не должен попадать в сегмент. Нужно было завершить сегмент на 0:34 сек</span>
+            <div class="vtime">⏱ Сегмент 1: 0:13–0:43</div>
+          </div>
+        </div>
+      </div>
+      <div class="manual-links-row">
+      <a class="manual-link" href="https://ekaterina-dl.github.io/avatar-manual/manual-2-etap/05b-what-not-to-label/#закадровый-голос" target="_blank" rel="noopener">Что не размечаем → «Закадровый голос» — правильный ответ</a>
+      <a class="manual-link" href="https://ekaterina-dl.github.io/avatar-manual/manual-2-etap/05b-what-not-to-label/#фоновый-шум-и-ветер" target="_blank" rel="noopener">Что не размечаем → «Фоновый шум и ветер» — правильный ответ</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ошибка №5: Люди в кадре: считают всех, кто попал в кадр, а не только спикера -->
+  <section class="slide flow" id="s6">
+    <div class="slide-inner">
+      <div class="err-head">
+        <span class="kicker" style="margin:0;">Ошибка №5</span>
+        <span class="stat-pill">13 строк · 8 человек</span>
+      </div>
+      <h2>Люди в кадре: считают всех, кто попал в кадр, а не только спикера</h2>
+      <p class="lead">Правило звучит просто, но регулярно ломается на видео, где рядом со спикером случайно оказался прохожий или человек на фоне.</p>
+      <div class="vmini-grid">
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/NSnl0IPBGNE.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№21</span> <span class="vtext">Объем и поза тела человека в кадре в первом сегменте - сидя в полный рост, так как видно бедра и колени. В начале первого сегмента видно двух человек, но стоит метка, что один в кадре.</span>
+            <div class="vmarked">🏷 Асессор отметил «Количество людей в кадре»: сегмент 1 — Один человек в кадре; сегмент 2 — Два и более человека в кадре</div>
+            <div class="vtime">⏱ Сегмент 1: 5:00–5:23 · Сегмент 2: 9:10–9:21</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/a089d044-16eb-4f70-9eb4-2adf76b607b7/downloaded_raw/Rsicavqgovo.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№25</span> <span class="vtext">1. Преобладающий ракурс в обоих сегментах - полуоборот. 2. В кадре один человек. Тот, кто мелькает на фоне мы не отмечаем.</span>
+            <div class="vmarked">🏷 Асессор отметил «Количество людей в кадре» (во всех сегментах): Два и более человека в кадре</div>
+            <div class="vtime">⏱ Сегмент 1: 0:04–0:28 · Сегмент 2: 0:28–0:46</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/a089d044-16eb-4f70-9eb4-2adf76b607b7/downloaded_raw/vxEFr7hClRw.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№32</span> <span class="vtext">В кадре один человек. Людей на фоне не отмечаем.</span>
+            <div class="vmarked">🏷 Асессор отметил «Количество людей в кадре» (во всех сегментах): Два и более человека в кадре</div>
+            <div class="vtime">⏱ Сегмент 1: 0:11–0:36 · Сегмент 2: 0:44–1:31</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/a089d044-16eb-4f70-9eb4-2adf76b607b7/downloaded_raw/sp9aXlYkcP8.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№34</span> <span class="vtext">В кадре один человек. Людей на фоне мы не отмечаем</span>
+            <div class="vmarked">🏷 Асессор отметил «Количество людей в кадре» (во всех сегментах): Два и более человека в кадре</div>
+            <div class="vtime">⏱ Сегмент 1: 0:13–1:00 · Сегмент 2: 1:08–1:42</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/E42VCj3wqQM.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№64</span> <span class="vtext">2 сегмент: отмечено 2 возраста, но ребенок ничего не говорит. В кадре 2 человека. поставлено &quot;один&quot;.</span>
+            <div class="vtime">⏱ Сегмент 1: 0:00–0:24 · Сегмент 2: 1:10–1:22</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/kicq8xb_Uq8.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№105</span> <span class="vtext">1. Голова и плечи, а не просто голова. 2. 1 человек в кадре, а не 2. 3. В 3 сегменте расфокус лица.</span>
+            <div class="vtime">⏱ Сегмент 1: 0:13–0:30 · Сегмент 2: 0:32–0:47 · Сегмент 3: 1:08–1:38</div>
+            <div class="vquote">1. Голова ставится тогда, когда видна только она и шея (или только голова без шеи). Если видно хотя бы одно плечо (не обязательно до локтевого сустава), то ставить нужно уже &quot;Голова и плечи&quot;. 2. Ошибка относится к первому сегменту. Нумерация ошибок не равна номерам сегментов. На валидации сейчас все ошибки зхаписываются в одно поле, так как мы выяснили, что если поставить несколько ошибок на каждый сегмент с разными комментриями, то разметчики видят только одну ошибку. Будем прописывать номера сегментов в описании ошибки.</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/xdUgNh6pWdA.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№111</span> <span class="vtext">1) Во 2 сегменте 1 человек в кадре, а не 2. 2) Выделено 3 однотипных сегмента, см. инструкцию.</span>
+            <div class="vtime">⏱ Сегмент 1: 0:07–0:39 · Сегмент 2: 0:56–1:14 · Сегмент 3: 1:18–1:32 · Сегмент 4: 1:40–2:04</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/ZM-d-DpTRac.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№116</span> <span class="vtext">В блоке &quot;Количество людей, одновременно находящихся в кадре&quot; нужно отмечать только спикеров, либо тех, кто стоит рядом со спикером в кадре. Людей на фоне не нужно отмечать. Верная метка в данном случае - &quot;один человек в кадре&quot;</span>
+            <div class="vtime">⏱ Сегмент 1: 0:08–0:27 · Сегмент 2: 0:31–0:42 · Сегмент 3: 0:45–0:57 · Сегмент 4: 1:10–1:34</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/HmN_x5WVOOQ.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№117</span> <span class="vtext">1. Во втором сегменте фон динамичный. 2. В третьем сегменте в кадре один человек</span>
+            <div class="vtime">⏱ Сегмент 1: 0:04–0:21 · Сегмент 2: 0:21–0:40 · Сегмент 3: 0:41–0:56</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/ngRta-UYjws.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№118</span> <span class="vtext">1. В кадре один человек. Тех, кто на фоне мы не отмечаем. 2. Во втором сегменте эмоция не похожа на положительную.</span>
+            <div class="vtime">⏱ Сегмент 1: 0:00–0:19 · Сегмент 2: 0:20–0:32</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/pMa7_OU3H7I.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№131</span> <span class="vtext">в кадре 2 человека</span>
+            <div class="vtime">⏱ Сегмент 1: 0:01–5:00</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/aad81115-c102-4001-8e6a-67207c05ec73/downloaded_raw/UzXwYRwD1Uw.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№146</span> <span class="vtext">1. Ошибка в блоке &quot;Количество людей, одновременно находящихся в кадре&quot;. 2. Сегмент нужно было продолжить, артефактов нет</span>
+            <div class="vtime">⏱ Сегмент 1: 0:27–3:27</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/aad81115-c102-4001-8e6a-67207c05ec73/downloaded_raw/DaoKg4_kiuE.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№149</span> <span class="vtext">В блоке &quot;Количество людей, одновременно находящихся в кадре&quot; нужно отмечать только спикеров, либо тех, кто стоит рядом со спикером в кадре. Людей на фоне не нужно отмечать. Верная метка в данном случае - &quot;один человек в кадре&quot;. Ошибка во всех сегментах</span>
+            <div class="vmarked">🏷 Асессор отметил «Количество людей в кадре» (во всех сегментах): Два и более человека в кадре</div>
+            <div class="vtime">⏱ Сегмент 1: 0:22–0:44 · Сегмент 2: 0:53–1:27 · Сегмент 3: 1:37–2:19 · Сегмент 4: 2:23–2:48 · Сегмент 5: 3:06–3:46</div>
+          </div>
+        </div>
+      </div>
+      <div class="manual-links-row">
+      <a class="manual-link" href="https://ekaterina-dl.github.io/avatar-manual/manual-2-etap/04-classifier/#12-количество-людей-одновременно-находящихся-в-кадре" target="_blank" rel="noopener">Классификатор → «Количество людей в кадре» — правильный ответ</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Бонус-тема: Очки и блики: критерий — оба глаза, а не «в целом видно» -->
+  <section class="slide flow" id="s7">
+    <div class="slide-inner">
+      <div class="err-head">
+        <span class="kicker" style="margin:0;">Бонус-тема</span>
+        <span class="stat-pill">7 строк · 7 человек · свежий разбор 21.09</span>
+      </div>
+      <h2>Очки и блики: критерий — оба глаза, а не «в целом видно»</h2>
+      <p class="lead">Тема не в топ-5 по частоте, но именно по ней 21.09 появился точный критерий заказчика — и старый пример в мануале заменили на реальный кейс из проверок. Первая карточка — допустимый пример для сравнения.</p>
+      <div class="vmini-grid">
+        <div class="vmini">
+          <video controls preload="metadata" src="assets/dVqpQtlTh2M__segment_2_108_119__seg2.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum good">ДОПУСТИМО</span> <span class="vtext">Отражения на очках есть, но оба глаза хорошо видны — сегмент подходит (пример из мануала для сравнения).</span>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/vUArIrBq4jg.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№19</span> <span class="vtext">Глаза должны быть видны. Ошибка на 32 сек, 55 сек и тд</span>
+            <div class="vtime">⏱ Сегмент 1: 0:04–4:43</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/a20120cf-3450-4d78-8d8e-053fc5612dbd/downloaded_raw/WDPVBuH1LlI.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№57</span> <span class="vtext">Длительность видео превышает допустимую + сильные блики на очках. такое размечать не нужно (либо искать, где хорошо видны глаза)</span>
+            <div class="vtime">⏱ Сегмент 1: 0:00–4:25 · Сегмент 2: 4:40–9:25</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/a20120cf-3450-4d78-8d8e-053fc5612dbd/downloaded_raw/GX1aSOE5fV4.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№63</span> <span class="vtext">в 1 сегменте с 34 сек поплыл FPS. Также некорректные границы 4 сегмента, очки бликуют как в нем, так и до, и после.</span>
+            <div class="vtime">⏱ Сегмент 1: 0:11–0:42 · Сегмент 2: 0:43–1:02 · Сегмент 3: 2:46–3:06 · Сегмент 4: 4:51–5:19</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/32bcf91c-b492-4582-8ac3-b2633ee4a543/downloaded_raw/PqTvgISXy-8.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№82</span> <span class="vtext">на протяжении всего видео есть сильные отражения на очках синего цвета, не подходит такое</span>
+            <div class="vtime">⏱ Сегмент 1: 0:08–2:29</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/a20120cf-3450-4d78-8d8e-053fc5612dbd/downloaded_raw/jW3Ucr3Nhb4.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№86</span> <span class="vtext">Большее количество времени на очках недопустимые блики (отсвечивает от окна). Нужно было найти сегмент, где этих отблесков нет</span>
+            <div class="vtime">⏱ Сегмент 1: 0:13–2:09 · Сегмент 2: 2:32–4:08</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/2e27a696-5f02-4d90-9db5-893ba5a32136/downloaded_raw/jVcK4ur4Qxw.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№125</span> <span class="vtext">на протяжении всего видео очень сильные блики на очках, закрывающие зрачок</span>
+            <div class="vtime">⏱ Сегмент 1: 0:02–5:00</div>
+            <div class="vquote">для обучения модели важно лицо, соответственно, оба глаза, а на данном видео правый глаз человека из-за бликов почти не виден. Пример, который упоминается в мануале из инструкции убран, очень спорный, лучше заменить его. Можно взять https://tagme.sberdevices. ru/files/fe805e9c-09eb-4a2e-8b34- f15fec48b427 для примера допустимых отражений на очках.</div>
+          </div>
+        </div>
+        <div class="vmini">
+          <video controls preload="metadata" src="https://gigaeye-kandinsky-spark.obs.ru-moscow-1.hc.sbercloud.ru/kandi_de_team/post_train/pre_stage/video/avatars/aad81115-c102-4001-8e6a-67207c05ec73/downloaded_raw/IvuYsVeSV04.mp4"></video>
+          <div class="vmini-cap">
+            <span class="vnum">№136</span> <span class="vtext">В линзах отражение окружения - такое не подходит.</span>
+            <div class="vtime">⏱ Сегмент 1: 0:00–1:49</div>
+          </div>
+        </div>
+      </div>
+      <div class="manual-links-row">
+      <a class="manual-link" href="https://ekaterina-dl.github.io/avatar-manual/manual-2-etap/05b-what-not-to-label/#очки" target="_blank" rel="noopener">Что не размечаем → «Очки» — правильный ответ</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. DIVIDER: что изменилось -->
+  <section class="slide divider" id="s8">
+    <div class="slide-inner">
+      <div class="idx">Раздел 2</div>
+      <h1>Что изменилось в мануале за сентябрь</h1>
+      <p>Ниже — только смысловые правки, которые реально влияют на разметку, с прямой ссылкой на
+      обновлённый раздел. Мелкое форматирование и перестановки блоков в этот список не попали.</p>
+    </div>
+  </section>
+
+  <!-- 9. CHANGES: классификатор -->
+  <section class="slide flow" id="s9">
+    <div class="slide-inner">
+      <div class="kicker">Классификатор</div>
+      <h2>Пять уточнений, которые меняют разметку полей</h2>
+      <div class="change-grid">
+        <div class="change-card">
+          <div class="date">21.09</div>
+          <h3>Фон: любое движение = динамика</h3>
+          <p>Ветер, разовое движение животного, колышущаяся листва — всё это теперь
+          «Динамичный/уличный». При этом голая стена без явных признаков улицы — ещё не «улица».</p>
+          <a class="manual-link" href="https://ekaterina-dl.github.io/avatar-manual/manual-2-etap/04-classifier/#6-фон" target="_blank" rel="noopener">Классификатор → «Фон»</a>
+        </div>
+        <div class="change-card">
+          <div class="date">21.09</div>
+          <h3>«Голова» vs «Голова и плечи»</h3>
+          <p>«Голова» — только когда видна голова и шея, без единого плеча. Если видно хотя бы одно
+          плечо (пусть обрезанное краем кадра) — уже «Голова и плечи». На практике «Голова»
+          встречается очень редко.</p>
+          <a class="manual-link" href="https://ekaterina-dl.github.io/avatar-manual/manual-2-etap/04-classifier/#3-объём-и-поза-тела-человека-в-кадре" target="_blank" rel="noopener">Классификатор → «Объём и поза тела»</a>
+        </div>
+        <div class="change-card">
+          <div class="date">21–22.09</div>
+          <h3>Люди в кадре — в общих правилах</h3>
+          <p>«Людей на фоне не отмечаем» перестало быть точечным комментарием и вошло в основной
+          текст общих правил классификатора.</p>
+          <a class="manual-link" href="https://ekaterina-dl.github.io/avatar-manual/manual-2-etap/04-classifier/#общие-правила" target="_blank" rel="noopener">Классификатор → «Общие правила»</a>
+        </div>
+        <div class="change-card">
+          <div class="date">02.09</div>
+          <h3>Эмоции: «нейтральные» — редкое значение</h3>
+          <p>«Нейтральные/спокойные» ставим только когда эмоций практически нет. Злость, явная
+          напряжённость, раздражение — это «серьёзные/сосредоточенные/негативные», не нейтральные.</p>
+          <a class="manual-link" href="https://ekaterina-dl.github.io/avatar-manual/manual-2-etap/04-classifier/#7-эмоции-и-выражение-лица" target="_blank" rel="noopener">Классификатор → «Эмоции и выражение лица»</a>
+        </div>
+        <div class="change-card">
+          <div class="date">16.09</div>
+          <h3>Пение: монолог/диалог по числу поющих</h3>
+          <p>Поёт один человек — «монолог», даже если рядом молча стоит кто-то ещё. Поют двое и
+          более — «диалог», даже без «переговаривания» в привычном смысле.</p>
+          <a class="manual-link" href="https://ekaterina-dl.github.io/avatar-manual/manual-2-etap/04-classifier/#8-тип-речи" target="_blank" rel="noopener">Классификатор → «Тип речи»</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. CHANGES: что не размечаем + организационное -->
+  <section class="slide flow" id="s10">
+    <div class="slide-inner">
+      <div class="kicker">Что не размечаем / битое · организация</div>
+      <h2>Плюс шесть правок по границам и по процессу</h2>
+      <div class="change-grid">
+        <div class="change-card">
+          <div class="date">21.09</div>
+          <h3>«Угу» и «м» — это не закадровый голос</h3>
+          <p>Короткие односложные звуки не повод отправлять видео в «Битое». Слова и реплики
+          закадрового человека по-прежнему недопустимы.</p>
+          <a class="manual-link" href="https://ekaterina-dl.github.io/avatar-manual/manual-2-etap/05b-what-not-to-label/#закадровый-голос" target="_blank" rel="noopener">Что не размечаем → «Закадровый голос»</a>
+        </div>
+        <div class="change-card">
+          <div class="date">11.09</div>
+          <h3>Потеря лица — отдельное правило</h3>
+          <p>Вынесена из «Перекрытия лица» в свой подраздел: это про поворот головы (нос «уходит за
+          угол»), а не про перекрытие чем-то посторонним.</p>
+          <a class="manual-link" href="https://ekaterina-dl.github.io/avatar-manual/manual-2-etap/05b-what-not-to-label/#потеря-лица" target="_blank" rel="noopener">Что не размечаем → «Потеря лица»</a>
+        </div>
+        <div class="change-card">
+          <div class="date">21.09</div>
+          <h3>Пиксельность при динамике — допустима</h3>
+          <p>Если персонаж активно двигается в кадре, полностью избежать пиксельности невозможно —
+          это больше не повод для «Битого».</p>
+          <a class="manual-link" href="https://ekaterina-dl.github.io/avatar-manual/manual-2-etap/05b-what-not-to-label/#пиксельность" target="_blank" rel="noopener">Что не размечаем → «Пиксельность»</a>
+        </div>
+        <div class="change-card">
+          <div class="date">21.09</div>
+          <h3>Фоновый шум и ветер — отдельное правило</h3>
+          <p>Шум допустим, пока не мешает разобрать речь и не перебивает говорящего. Одного факта,
+          что слышен шум, недостаточно для «Битого» — ищите чистый по звуку участок.</p>
+          <a class="manual-link" href="https://ekaterina-dl.github.io/avatar-manual/manual-2-etap/05b-what-not-to-label/#фоновый-шум-и-ветер" target="_blank" rel="noopener">Что не размечаем → «Фоновый шум и ветер»</a>
+        </div>
+        <div class="change-card">
+          <div class="date">03.09</div>
+          <h3>Кнопка «Проиграть фрагмент видео»</h3>
+          <p>Новая кнопка в интерфейсе — проигрывает только выделенный сегмент, чтобы поймать
+          случайно попавшую склейку перед отправкой. Пользуются пока не все.</p>
+          <a class="manual-link" href="https://ekaterina-dl.github.io/avatar-manual/manual-2-etap/02-segments/#кнопка-проиграть-фрагмент-видео" target="_blank" rel="noopener">Сегменты → «Кнопка „Проиграть фрагмент видео“»</a>
+        </div>
+        <div class="change-card">
+          <div class="date">08.09 / 18–21.09</div>
+          <h3>Самотестирование, нормы, возврат после перерыва</h3>
+          <p>20 вопросов на сайте (порог 90%), недельные нормы по заявкам, допуск к 3 этапу, а при
+          возврате после паузы — отдельное тестирование на Tagme плюс экзамен.</p>
+          <a class="manual-link" href="https://ekaterina-dl.github.io/avatar-manual/manual-2-etap/07-testirovanie/" target="_blank" rel="noopener">Страница «Тестирование»</a>
+          <a class="manual-link" href="https://ekaterina-dl.github.io/avatar-manual/manual-2-etap/00-overview/#нормы-активности-на-проекте" target="_blank" rel="noopener">Обзор проекта → «Нормы активности»</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11. DIVIDER: трудности -->
+  <section class="slide divider" id="s11">
+    <div class="slide-inner">
+      <div class="idx">Раздел 3</div>
+      <h1>Где асессорам сложнее всего</h1>
+      <p>Не «кто виноват», а где путаница системная — то есть повторяется у разных людей и правда
+      объясняется тем, что правило было неочевидным до недавних уточнений.</p>
+    </div>
+  </section>
+
+  <!-- 12. ТРУДНОСТИ ПРИ РАЗМЕТКЕ -->
+  <section class="slide flow" id="s12">
+    <div class="slide-inner">
+      <div class="kicker">При разметке</div>
+      <h2>Реальные споры из проверок — обезличенно</h2>
+      <div class="diff-cards">
+        <div class="diff-card">
+          <div class="said">Разделила сегмент на два, потому что увидела разные эмоции — думала, так
+          и нужно</div>
+          <div class="now">Оказалось: эмоции на видео не менялись настолько, чтобы делить.
+          <b>Сейчас:</b> «нейтральные» ставим только когда эмоций почти нет — порог стал строже.</div>
+        </div>
+        <div class="diff-card">
+          <div class="said">Не взяла фон с лёгким шевелением на заднем плане — казалось, это ещё
+          статика</div>
+          <div class="now">Оказалось: критерий расширили. <b>Сейчас:</b> любое движение за спиной —
+          уже «Динамичный/уличный», даже разовое.</div>
+        </div>
+        <div class="diff-card">
+          <div class="said">Сочла блики на очках некритичными — зрачки же были видны</div>
+          <div class="now">Оказалось: важны именно оба глаза одновременно. <b>Сейчас:</b> если хотя
+          бы один глаз почти не виден из-за бликов — брак.</div>
+        </div>
+        <div class="diff-card">
+          <div class="said">Оспорила «пережатие» и тряску камеры с аргументами по таймкодам</div>
+          <div class="now">В части случаев валидатор пересмотрел и снял ошибку. <b>Вывод:</b> спорить
+          с фактами и таймкодами — это нормально и иногда работает.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13. ТРУДНОСТИ НА ЭКЗАМЕНЕ -->
+  <section class="slide flow" id="s13">
+    <div class="slide-inner">
+      <div class="kicker">На вступительном экзамене</div>
+      <h2>Проходят немного — и спотыкаются об одно и то же</h2>
+      <div class="stat-tiles">
+        <div class="stat-tile"><div class="value">15 / 57</div><div class="label">сдали с 1-й попытки (≈26%)</div></div>
+        <div class="stat-tile"><div class="value">13 / 31</div><div class="label">сдали со 2-й попытки (≈42%)</div></div>
+      </div>
+      <p class="lead" style="margin-top:8px;">Самые частые причины провала — по частоте упоминаний в
+      проверках экзаменов:</p>
+      <ul class="exam-list">
+        <li><span class="num">1</span><span><b>Границы не по речи</b> — молчание на краях сегмента, обрыв
+        посреди фразы без причины.</span></li>
+        <li><span class="num">2</span><span><b>«Битое» решают неверно</b> — в обе стороны: бракуют
+        видео с подходящим сегментом и наоборот, размечают то, что нужно было забраковать.</span></li>
+        <li><span class="num">3</span><span><b>Эмоции</b> — путают «нейтральные» с «серьёзными», не
+        слышат интонацию за мимикой.</span></li>
+        <li><span class="num">4</span><span><b>Склейки</b> — не замечают короткую смену кадра внутри
+        сегмента (все ошибки такого рода во 2-й попытке — за 11–19.09).</span></li>
+        <li><span class="num">5</span><span><b>Монолог/диалог, ракурс, руки/«Голова»</b> — те же темы,
+        что и в текущих проверках у действующих асессоров.</span></li>
+      </ul>
+      <a class="manual-link" href="https://ekaterina-dl.github.io/avatar-manual/manual-2-etap/00-overview/#на-чём-чаще-всего-проваливаются-на-экзамене" target="_blank" rel="noopener">Обзор проекта → «На чём чаще всего проваливаются на экзамене» (полный список из 9 правил)</a>
+    </div>
+  </section>
+
+  <!-- 14. ПРЕДЛОЖЕНИЯ — призыв -->
+  <section class="slide flow" id="s14">
+    <div class="slide-inner">
+      <div class="kicker">Раздел 4</div>
+      <h2>Ваша очередь — какие есть предложения?</h2>
+      <p class="lead">Мы разобрали ошибки и правки с нашей стороны. Теперь хотим услышать обратную
+      связь от вас: что стоит поменять в самом проекте, в мануале, в ОС и проверках, в интерфейсе
+      Tagme. Пишите всё — даже если кажется мелочью.</p>
+      <div class="ask-cards">
+        <div class="ask-card">
+          <h3>📘 Мануал</h3>
+          <ul>
+            <li>Какого раздела или правила не хватает?</li>
+            <li>Где формулировка непонятна с первого раза?</li>
+            <li>Каких примеров/видео мало — по каким темам?</li>
+          </ul>
+        </div>
+        <div class="ask-card">
+          <h3>✅ ОС и проверки</h3>
+          <ul>
+            <li>Устраивает ли скорость обратной связи от валидатора?</li>
+            <li>Понятно ли, как и когда оспаривать ошибку?</li>
+            <li>Бывают ли формулировки ошибок без понятной причины?</li>
+          </ul>
+        </div>
+        <div class="ask-card">
+          <h3>🖥️ Интерфейс Tagme</h3>
+          <ul>
+            <li>Что неудобно при выделении сегмента или заполнении классификатора?</li>
+            <li>Каких кнопок/подсказок не хватает?</li>
+            <li>Были случаи багов или зависаний — какие?</li>
+          </ul>
+        </div>
+        <div class="ask-card">
+          <h3>📋 Процесс и график</h3>
+          <ul>
+            <li>Нормы активности, темп работы — что стоит пересмотреть?</li>
+            <li>Экзамен и допуск к 3 этапу — что усложняет прохождение?</li>
+            <li>Возврат после перерыва — понятен ли порядок действий?</li>
+          </ul>
+        </div>
+      </div>
+      <div class="ask-banner">Всё, что скажете сегодня — записываем и разбираем на следующем созвоне.</div>
+    </div>
+  </section>
+
+  <!-- 15. FINAL -->
+  <section class="slide final" id="s15">
+    <div class="slide-inner">
+      <div class="kicker">Спасибо</div>
+      <h1>Вопросы?</h1>
+      <p class="lead">Если не согласны с конкретной ошибкой — аргументируйте с таймкодами в
+      комментарии асессора, как в примерах выше. Иногда это меняет решение.</p>
+      <div class="final-links">
+        <a href="https://ekaterina-dl.github.io/avatar-manual/manual-2-etap/00-overview/" target="_blank" rel="noopener">Полный мануал 2 этапа</a>
+        <a href="https://ekaterina-dl.github.io/avatar-manual/manual-2-etap/06-common-mistakes/" target="_blank" rel="noopener">Страница «Частые ошибки» с видео-примерами</a>
+        <a href="https://ekaterina-dl.github.io/avatar-manual/manual-2-etap/07-testirovanie/" target="_blank" rel="noopener">Самотестирование (20 вопросов)</a>
+      </div>
+      <footer class="note">Материал подготовлен по данным ОС «Разметка ВК видео» за 01–21.09.2026 и
+      файлу результатов экзамена от 21.09.2026. Примеры видео — реальные кейсы из проверок этого
+      периода.</footer>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function(){
+  var sections = Array.prototype.slice.call(document.querySelectorAll('main .slide'));
+  var dotsWrap = document.getElementById('dots');
+  var counter = document.getElementById('counter');
+  sections.forEach(function(s, i){
+    var a = document.createElement('a');
+    a.href = '#' + s.id;
+    a.title = (i+1) + ' / ' + sections.length;
+    dotsWrap.appendChild(a);
+  });
+  var dots = Array.prototype.slice.call(dotsWrap.children);
+
+  function setActive(i){
+    dots.forEach(function(d, j){ d.classList.toggle('active', j === i); });
+    counter.textContent = (i+1) + ' / ' + sections.length;
+  }
+
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting && entry.intersectionRatio > 0.5){
+        var i = sections.indexOf(entry.target);
+        if(i > -1) setActive(i);
+      }
+    });
+  }, {threshold:[0.5]});
+  sections.forEach(function(s){ io.observe(s); });
+
+  document.addEventListener('keydown', function(e){
+    var cur = dots.findIndex(function(d){ return d.classList.contains('active'); });
+    if(cur === -1) cur = 0;
+    if(e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' '){
+      e.preventDefault();
+      var next = Math.min(cur+1, sections.length-1);
+      sections[next].scrollIntoView({behavior:'smooth'});
+    } else if(e.key === 'ArrowUp' || e.key === 'PageUp'){
+      e.preventDefault();
+      var prev = Math.max(cur-1, 0);
+      sections[prev].scrollIntoView({behavior:'smooth'});
+    }
+  });
+
+  setActive(0);
+})();
+</script>
+
+</body>
+</html>
